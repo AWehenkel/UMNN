@@ -1,5 +1,3 @@
-#import sys
-#sys.path.append("~/Documents/Ecole/2018-2019/Research/UMNN/models")
 from models import UMNNMAFFlow
 import torch
 import lib.toy_data as toy_data
@@ -73,11 +71,16 @@ def train_toy(toy, load=True, nb_steps=20, nb_flow=1, folder=""):
     logger = utils.get_logger(logpath=os.path.join(folder, toy, 'logs'), filepath=os.path.abspath(__file__))
 
     logger.info("Creating model...")
-    model = UMNNMAFFlow(nb_flow=nb_flow, nb_in=2, hidden_derivative=[50, 50, 50], hidden_embedding=[50, 50, 50],
+    model = UMNNMAFFlow(nb_flow=nb_flow, nb_in=200, hidden_derivative=[50, 50, 50], hidden_embedding=[50, 50, 50],
                         embedding_s=30, nb_steps=nb_steps, device=device).to(device)
     logger.info("Model created.")
     opt = torch.optim.Adam(model.parameters(), 1e-3, weight_decay=1e-5)
 
+    x = torch.randn(5, 200)*10
+    _, z = model.compute_ll_bis(x)
+    x_est = model.invert(z)
+    print(torch.norm(x-x_est))
+    exit()
     if load:
         logger.info("Loading model...")
         model.load_state_dict(torch.load(folder + toy+'/model.pt'))

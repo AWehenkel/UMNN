@@ -114,7 +114,7 @@ class UMNNMAF(nn.Module):
         return self.net.parallel_nets.computeLipshitz(nb_iter)
 
     def force_lipschitz(self, L=1.5):
-        self.net.parallel_nets.forceLipshitz(L)
+        self.net.parallel_nets.force_lipschitz(L)
 
     # Kind of dichotomy with a factor 100.
     def invert(self, z, iter=10, context=None):
@@ -143,9 +143,11 @@ class UMNNMAF(nn.Module):
                 x0 = torch.zeros(offset.shape).view(-1, 1).to(self.device)
 
                 derivative = lambda x, h: self.net.parallel_nets.independant_forward(torch.cat((x, h), 1))
-
+                # print("ici")
                 for i in range(iter):
                     x[:, :, j] = x_range * (right[:, j] - left[:, j]) + left[:, j]
+                    # if i == 0:
+                    #     print(right[:, j], left[:, j])
                     z_est = s[:, :, [j]]*(offset + ParallelNeuralIntegral.apply(x0, x[:, :, j].contiguous().view(-1, 1),
                                                                                 derivative, None,
                                                                                 h.contiguous().view(x0.shape[0], -1),
