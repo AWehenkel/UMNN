@@ -39,7 +39,7 @@ python TrainVaeFlow.py
 ## Other Usage
 All the files related to the implementation of UMNN (Conditionner network, Integrand Network and Integral)
 are located in the folder models/UMNN. 
-- `NeuralIntegral.py computes the integral of a neural network
+- `NeuralIntegral.py` computes the integral of a neural network
 (with 1d output) using the Clenshaw-Curtis(CC) quadrature, it computes sequentially the different evaluation points required by CC.
 - `ParallelNeuralIntegral.py` processes all the evaluation points at once making the computation almost as fast as the forward evaluation 
 the net but to the price of a higher memory cost. 
