@@ -17,11 +17,11 @@ import gzip
 import time
 import urllib.request
 
-savedir = 'dataset/'
-mnist = False
+savedir = 'datasets/data'
+mnist = True
 cifar10 = False
 omniglot = False
-maf = True
+maf = False
 
 
 class Progbar(object):

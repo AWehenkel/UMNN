@@ -239,7 +239,6 @@ parser.add_argument("-hidden_derivative", nargs='+', type=int, default=[100, 50,
 parser.add_argument("-embedding_size", type=int, default=30, help="Size of embedding part")
 parser.add_argument("-real_images", type=bool, default=False, help="Generate real images")
 parser.add_argument("-dataset", type=str, default="MNIST", help="Dataset")
-parser.add_argument("-inv_method", type=str, default="ParallelSimpler", help="Method for inversion")
 parser.add_argument("-nb_images", type=int, default=5, help="Number of images to be generated")
 parser.add_argument("-conditionnal", type=bool, default=False, help="Conditionning on class or not")
 parser.add_argument("-nb_flow", type=int, default=5, help="Number of nets in the flow")
@@ -260,5 +259,5 @@ train_mnist(dataset=dataset, load=dir_load, gen_image=args.gen, save=dir_save, n
             temperature=args.temperature, solver=args.solver, hidden_embeding=args.hidden_embedding,
             hidden_derivative=args.hidden_derivative, real_images=args.real_images, nb_images=args.nb_images,
             conditionnal=args.conditionnal, nb_flow=args.nb_flow, weight_decay=args.weight_decay, lr=args.lr,
-            nb_epoch=args.nb_epoch, L=args.Lipshitz, nb_iter=args.nb_iter, inv_method=args.inv_method,
+            nb_epoch=args.nb_epoch, L=args.Lipshitz, nb_iter=args.nb_iter,
             batch_size=args.b_size)

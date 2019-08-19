@@ -16,7 +16,7 @@ def summary_plots(x, x_test, folder, epoch, model, ll_tot, ll_test):
     ax = plt.subplot(1, 3, 2, aspect="equal")
     vf.plt_samples(toy_data.inf_train_gen(toy, batch_size=1000000), ax, npts=200)
     ax = plt.subplot(1, 3, 3, aspect="equal")
-    samples = model.invert(torch.distributions.Normal(0., 1.).sample([10000, 2]), 15, "Binary")
+    samples = model.invert(torch.distributions.Normal(0., 1.).sample([1000, 2]), 8, "Binary")
     vf.plt_samples(samples.detach().numpy(), ax, title="$x\sim q(x)$")
     plt.savefig("%s/flow_%d.png" % (folder + toy, epoch))
     plt.close(fig)
@@ -71,16 +71,11 @@ def train_toy(toy, load=True, nb_steps=20, nb_flow=1, folder=""):
     logger = utils.get_logger(logpath=os.path.join(folder, toy, 'logs'), filepath=os.path.abspath(__file__))
 
     logger.info("Creating model...")
-    model = UMNNMAFFlow(nb_flow=nb_flow, nb_in=200, hidden_derivative=[50, 50, 50], hidden_embedding=[50, 50, 50],
-                        embedding_s=30, nb_steps=nb_steps, device=device).to(device)
+    model = UMNNMAFFlow(nb_flow=nb_flow, nb_in=2, hidden_derivative=[50, 50, 50, 50], hidden_embedding=[50, 50, 50, 50],
+                        embedding_s=10, nb_steps=nb_steps, device=device).to(device)
     logger.info("Model created.")
     opt = torch.optim.Adam(model.parameters(), 1e-3, weight_decay=1e-5)
 
-    x = torch.randn(5, 200)*10
-    _, z = model.compute_ll_bis(x)
-    x_est = model.invert(z)
-    print(torch.norm(x-x_est))
-    exit()
     if load:
         logger.info("Loading model...")
         model.load_state_dict(torch.load(folder + toy+'/model.pt'))
@@ -112,15 +107,15 @@ def train_toy(toy, load=True, nb_steps=20, nb_flow=1, folder=""):
         logger.info("epoch: {:d} - Train loss: {:4f} - Test loss: {:4f} - Elapsed time per epoch {:4f} (seconds)".
                     format(epoch, ll_tot.item(), ll_test.item(), end-start))
 
-        if (epoch % 20) == 0:
+        if (epoch % 100) == 0:
             summary_plots(x, x_test, folder, epoch, model, ll_tot, ll_test)
             torch.save(model.state_dict(), folder + toy + '/model.pt')
             torch.save(opt.state_dict(), folder + toy + '/ADAM.pt')
 
 
 import argparse
-datasets = ["swissroll", "moons", "pinwheel", "cos", "2spirals", "checkerboard", "line", "line-noisy",
-            "circles", "joint_gaussian", "8gaussians"]
+datasets = ["8gaussians", "swissroll", "moons", "pinwheel", "cos", "2spirals", "checkerboard", "line", "line-noisy",
+            "circles", "joint_gaussian"]
 
 parser = argparse.ArgumentParser(description='')
 parser.add_argument("-dataset", default=None, choices=datasets, help="Which toy problem ?")

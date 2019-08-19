@@ -1,6 +1,6 @@
-# Unconstrained Monotonic Neural Network (UMNN)
+# Unconstrained Monotonic Neural Networks (UMNN)
 ![](figures/archi.png)
-Official implementation of Unconstrained Monotonic Neural Network (UMNN) and the experiments presented in the paper:
+Official implementation of Unconstrained Monotonic Neural Networks (UMNN) and the experiments presented in the paper:
 > Antoine Wehenkel and Gilles Louppe. "Unconstrained Monotonic Neural Networks." (2019).
 > [[arxiv]](https://arxiv.org/abs/1908.05164)
 
@@ -26,14 +26,27 @@ python MNISTExperiment.py
 See MNISTExperiment.py for optional arguments.
 
 ## UCI Dataset
+You have to download the datasets with the following command:
 ```bash
-python UCIExperiments
+python datasets/download_datasets.py 
+```
+Then you can execute:
+```bash
+python UCIExperiments.py --data ['power', 'gas', 'hepmass', 'miniboone', 'bsds300']
 ```
 See UCIExperiments.py for optional arguments.
 
 ## VAE
+You have to download the datasets:
+* MNIST: 
+```
+python datasets/download_datasets.py
+```
+* OMNIGLOT: the dataset can be downloaded from [link](https://github.com/yburda/iwae/blob/master/datasets/OMNIGLOT/chardata.mat);
+* Caltech 101 Silhouettes: the dataset can be downloaded from [link](https://people.cs.umass.edu/~marlin/data/caltech101_silhouettes_28_split1.mat).
+* Frey Faces: the dataset can be downloaded from [link](https://github.com/y0ast/Variational-Autoencoder/blob/master/freyfaces.pkl).
 ```bash
-python TrainVaeFlow.py
+python TrainVaeFlow.py -d ['mnist', 'freyfaces', 'omniglot', 'caltech']
 ```
 
 ## Other Usage

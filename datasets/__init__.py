@@ -1,4 +1,4 @@
-root = 'datasets/'
+root = 'datasets/data/'
 
 from .power import POWER
 from .gas import GAS

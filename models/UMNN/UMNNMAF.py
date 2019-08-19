@@ -172,7 +172,7 @@ class UMNNMAF(nn.Module):
 
 
 class IntegrandNetwork(nn.Module):
-    def __init__(self, nnets, nin, hidden_sizes, nout, act_func='Sigmoid', device="cpu"):
+    def __init__(self, nnets, nin, hidden_sizes, nout, act_func='ELU', device="cpu"):
         super().__init__()
         self.nin = nin
         self.nnets = nnets
