@@ -1,6 +1,7 @@
 """
 Implements Masked AutoEncoder for Density Estimation, by Germain et al. 2015
 Re-implementation by Andrej Karpathy based on https://arxiv.org/abs/1502.03509
+Modified by Antoine Wehenkel
 """
 
 import numpy as np
@@ -10,6 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 # ------------------------------------------------------------------------------
+
 
 class MaskedLinear(nn.Linear):
     """ same as Linear except has a configurable mask on the weights """
@@ -23,7 +25,6 @@ class MaskedLinear(nn.Linear):
         
     def forward(self, input):
         return F.linear(input, self.mask * self.weight, self.bias)
-
 
 
 class MADE(nn.Module):

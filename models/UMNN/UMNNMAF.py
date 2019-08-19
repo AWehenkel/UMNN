@@ -6,6 +6,7 @@ import numpy as np
 import math
 from .made import MADE, ConditionnalMADE
 
+dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": nn.ELU()}
 
 def _flatten(sequence):
     flat = [p.contiguous().view(-1) for p in sequence]
@@ -35,8 +36,8 @@ class UMNNMAF(nn.Module):
         self.solver = solver
         self.pi = torch.tensor(math.pi).to(self.device)
 
-        # Offset could be changed to be an autoregressive network which rescales and offsets all the inputs
-        self.scaling = nn.Parameter(torch.zeros(input_size).to(self.device))
+        # Scaling could be changed to be an autoregressive network output
+        self.scaling = torch.zeros(input_size).to(self.device)
 
     def forward(self, x, method=None, x0=None, context=None):
         x0 = x0 if x0 is not None else torch.zeros(x.shape).to(self.device)
@@ -54,7 +55,6 @@ class UMNNMAF(nn.Module):
             z = ParallelNeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
                                      h, self.nb_steps) + z0
         else:
-            print("jhee")
             return None
         return s*z
 
@@ -86,6 +86,7 @@ class UMNNMAF(nn.Module):
         z = self.forward(x, context=context)
         jac = self.net.forward(x)
 
+        z.clamp_(-10., 10.)
         log_prob_gauss = -.5 * (torch.log(self.pi * 2) + z ** 2).sum(1)
         ll = log_prob_gauss + torch.log(jac + 1e-10).sum(1) + self.scaling.unsqueeze(0).expand(x.shape[0], -1).sum(1)
 
@@ -96,7 +97,7 @@ class UMNNMAF(nn.Module):
         jac = self.net.forward(x)
 
         ll = torch.log(jac + 1e-10) + self.scaling.unsqueeze(0).expand(x.shape[0], -1)
-
+        z.clamp_(-10., 10.)
         return ll, z
 
     def compute_bpp(self, x, alpha=1e-6, context=None):
@@ -104,7 +105,7 @@ class UMNNMAF(nn.Module):
         ll, z = self.computeLL(x, context=context)
         bpp = -ll/(d*np.log(2)) - np.log2(1 - 2*alpha) + 8 \
               + 1/d * (torch.log2(torch.sigmoid(x)) + torch.log2(1 - torch.sigmoid(x))).sum(1)
-
+        z.clamp_(-10., 10.)
         return bpp, ll, z
 
     def set_steps_nb(self, nb_steps):
@@ -143,7 +144,7 @@ class UMNNMAF(nn.Module):
                 x0 = torch.zeros(offset.shape).view(-1, 1).to(self.device)
 
                 derivative = lambda x, h: self.net.parallel_nets.independant_forward(torch.cat((x, h), 1))
-                # print("ici")
+
                 for i in range(iter):
                     x[:, :, j] = x_range * (right[:, j] - left[:, j]) + left[:, j]
                     # if i == 0:
@@ -171,7 +172,7 @@ class UMNNMAF(nn.Module):
 
 
 class IntegrandNetwork(nn.Module):
-    def __init__(self, nnets, nin, hidden_sizes, nout, device="cpu"):
+    def __init__(self, nnets, nin, hidden_sizes, nout, act_func='Sigmoid', device="cpu"):
         super().__init__()
         self.nin = nin
         self.nnets = nnets
@@ -187,10 +188,9 @@ class IntegrandNetwork(nn.Module):
                 nn.LeakyReLU(),
             ])
         self.net.pop()  # pop the last ReLU for the output layer
-        self.net.append(nn.ELU())
+        self.net.append(dict_act_func[act_func])
         self.net = nn.Sequential(*self.net)
         self.masks = torch.eye(nnets).to(device)
-        self.printed = 0
 
     def forward(self, x, h):
         x = torch.cat((x, h), 1)
@@ -200,8 +200,6 @@ class IntegrandNetwork(nn.Module):
         return y + 1.
 
     def independant_forward(self, x):
-        if self.printed == 1:
-            self.printed += 1
         return self.net(x) + 1.
 
     def compute_lipschitz(self, nb_iter=10):
@@ -210,7 +208,6 @@ class IntegrandNetwork(nn.Module):
             for layer in self.net.modules():
                 if isinstance(layer, nn.Linear):
                     L *= compute_lipschitz_linear(layer.weight, nb_iter)
-            print(L)
         return L
 
     def force_lipschitz(self, L=1.5):
@@ -240,3 +237,4 @@ class EmbeddingNetwork(nn.Module):
 
     def forward(self, x_t):
         return self.parallel_nets.forward(x_t, self.m_embeding)
+

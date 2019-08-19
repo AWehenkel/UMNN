@@ -8,15 +8,16 @@ import os
 import pickle
 from timeit import default_timer as timer
 import torchvision
-
 from tensorboardX import SummaryWriter
+
+
 writer = SummaryWriter()
 
 
 def train_mnist(dataset, load=None, gen_image=False, save=None, temperature=.5, real_images=False, nb_iter=5,
                 nb_steps=50, solver="CC", hidden_embeding=[1024, 1024, 1024], hidden_derivative=[100, 50, 50, 50, 50],
                 embeding_size=30, nb_images=5, conditionnal=False, nb_flow=5, lr=1e-3, weight_decay=1e-2,
-                nb_epoch=500, L=1., inv_method="ParallelSimpler", batch_size=100):
+                nb_epoch=500, L=1., batch_size=100):
     cuda = 0 if torch.cuda.is_available() else -1
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
