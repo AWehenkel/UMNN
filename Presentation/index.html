@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>UMNN - Benelearn 2019</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" href="./assets/katex.min.css">
+    <link rel="stylesheet" href="./assets/style.css">
+    <link rel="stylesheet" href="./assets/grid.css">
+  </head>
+  <body>
+    <textarea id="source"></textarea>
+    <script src="./assets/remark-latest.min.js"></script>
+    <script src="./assets/auto-render.min.js"></script>
+    <script src="./assets/katex.min.js"></script>
+
+    <script type="text/javascript">
+        var options = {sourceUrl: "talk.md",
+                       highlightStyle: "tomorrow"};
+        var renderMath = function() {
+            renderMathInElement(document.body, {delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "\\(", right: "\\)", display: false},
+            ]});
+        }
+      var slideshow = remark.create(options, renderMath);
+    </script>
+  </body>
+</html>
