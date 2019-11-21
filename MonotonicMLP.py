@@ -83,7 +83,7 @@ if __name__ == "__main__":
     y_mon = model_monotonic(x, h)[:, 0].detach().cpu().numpy()
     y_mlp = model_mlp(x, h)[:, 0].detach().cpu().numpy()
     x = x.detach().cpu().numpy()
-    plt.plot(, y_mon, label="Monotonic model")
+    plt.plot(x, y_mon, label="Monotonic model")
     plt.plot(x, y_mlp, label="MLP model")
     plt.plot(x, y, label="groundtruth")
     plt.legend()
