@@ -11,6 +11,14 @@ Some code to draw figures and load dataset are taken from
 and [Sylvester normalizing flows for variational inference](https://github.com/riannevdberg/sylvester-flows).
 
 # Usage
+## Simple Monotonic Function
+This experiment is not describes in the paper. We create the following dataset:
+x = [x_1, x_2, x_3] is drawn from a multivariate Gaussian, y = x_1^3 + x_2 + sin(x_3). 
+We suppose we are given the information about which variable y is monotonic 
+with respect with, here x_1.
+```bash
+python MonotonicMLP.py 
+```
 
 ## Toy Experiments
 ![](figures/toy/all_flow.png)
