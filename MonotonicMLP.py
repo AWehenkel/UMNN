@@ -30,9 +30,9 @@ class MLP(nn.Module):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument("-nb_train", default=20000, type=int, help="Number of training samples")
+    parser.add_argument("-nb_train", default=100000, type=int, help="Number of training samples")
     parser.add_argument("-nb_test", default=1000, type=int, help="Number of testing samples")
-    parser.add_argument("-nb_epoch", default=100, type=int, help="Number of training epochs")
+    parser.add_argument("-nb_epoch", default=200, type=int, help="Number of training epochs")
     parser.add_argument("-load", default=False, action="store_true", help="Load a model ?")
     parser.add_argument("-folder", default="", help="Folder")
     args = parser.parse_args()
