@@ -77,11 +77,11 @@ if __name__ == "__main__":
         print("\tMonotonic: ", avg_loss_mon / args.nb_train)
 
     # <<TEST>>
-    x = torch.arange(-5, 5, .1).unsqueeze(1)
-    h = torch.zeros(x.shape[0], 2)
-    y = f(x[:, 0], h[:, 0], h[:, 1]).numpy()
-    y_mon = model_monotonic(x, h)[:, 0]
-    y_mlp = model_mlp(x, h)[:, 0]
+    x = torch.arange(-5, 5, .1).unsqueeze(1).to(device)
+    h = torch.zeros(x.shape[0], 2).to(device)
+    y = f(x[:, 0], h[:, 0], h[:, 1]).detach().cpu().numpy()
+    y_mon = model_monotonic(x, h)[:, 0].detach().cpu().numpy()
+    y_mlp = model_mlp(x, h)[:, 0].detach().cpu().numpy()
     plt.plot(x.detach().numpy(), y_mon.detach().numpy(), label="Monotonic model")
     plt.plot(x.detach().numpy(), y_mlp.detach().numpy(), label="MLP model")
     plt.plot(x.numpy(), y, label="groundtruth")
