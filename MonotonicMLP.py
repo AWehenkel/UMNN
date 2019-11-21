@@ -38,7 +38,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    model_monotonic = MonotonicNN(3, [100, 100, 100], nb_steps=50, dev=device).to(device)
+    model_monotonic = MonotonicNN(3, [100, 100, 100], nb_steps=100, dev=device).to(device)
     model_mlp = MLP(3, [200, 200, 200]).to(device)
     optim_monotonic = torch.optim.Adam(model_monotonic.parameters(), 1e-3, weight_decay=1e-5)
     optim_mlp = torch.optim.Adam(model_mlp.parameters(), 1e-3, weight_decay=1e-5)
@@ -82,9 +82,10 @@ if __name__ == "__main__":
     y = f(x[:, 0], h[:, 0], h[:, 1]).detach().cpu().numpy()
     y_mon = model_monotonic(x, h)[:, 0].detach().cpu().numpy()
     y_mlp = model_mlp(x, h)[:, 0].detach().cpu().numpy()
-    plt.plot(x.detach().cpu().numpy(), y_mon.detach().cpu().numpy(), label="Monotonic model")
-    plt.plot(x.detach().cpu().numpy(), y_mlp.detach().cpu().numpy(), label="MLP model")
-    plt.plot(x.detach().cpu().numpy(), y, label="groundtruth")
+    x = x.detach().cpu().numpy()
+    plt.plot(, y_mon, label="Monotonic model")
+    plt.plot(x, y_mlp, label="MLP model")
+    plt.plot(x, y, label="groundtruth")
     plt.legend()
     plt.show()
     plt.savefig("Monotonicity.png")
