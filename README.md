@@ -13,13 +13,17 @@ and [Sylvester normalizing flows for variational inference](https://github.com/r
 # Usage
 ## Simple Monotonic Function
 This experiment is not describes in the paper. We create the following dataset:
-x = [x_1, x_2, x_3] is drawn from a multivariate Gaussian, y = x_1^3 + x_2 + sin(x_3). 
+x = [x_1, x_2, x_3] is drawn from a multivariate Gaussian, y = 0.001(x_1^3 + x) + x_2 + sin(x_3). 
 We suppose we are given the information about which variable y is monotonic 
 with respect with, here x_1.
 ```bash
 python MonotonicMLP.py 
 ```
-
+In this experiment we show that a classical MLP won't be able to 
+model a function which is monotonic with respect to x_1 because its effect is small
+in comparison to other variable. However a UMNN is able to perform better than a MLP while 
+ensuring that the output is monotonic with respect to x_1.
+![](figures/Monotonicity.png)
 ## Toy Experiments
 ![](figures/toy/all_flow.png)
 ```bash
