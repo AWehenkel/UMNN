@@ -13,7 +13,7 @@ and [Sylvester normalizing flows for variational inference](https://github.com/r
 # Usage
 ## Simple Monotonic Function
 This experiment is not described in the paper. We create the following dataset:
-x = [x_1, x_2, x_3] is drawn from a multivariate Gaussian, y = 0.001(x_1^3 + x) + x_2 + sin(x_3). 
+x = [x_1, x_2, x_3] is drawn from a multivariate Gaussian, y = 0.001(x_1^3 + x_1) + x_2 + sin(x_3). 
 We suppose that we are given the information the monotonicity of y with respect to x_1.
 ```bash
 python MonotonicMLP.py 
