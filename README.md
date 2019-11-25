@@ -20,7 +20,7 @@ python MonotonicMLP.py
 ```
 In this experiment we show that a classical MLP won't be able to 
 model a function that is monotonic with respect to x_1 because its effect is small
-in comparison to other variable. However, a UMNN performs better than a MLP while 
+in comparison to the other variables. The UMNN performs better than an MLP while 
 ensuring that the output is monotonic with respect to x_1.
 ![](figures/Monotonicity.png)
 ## Toy Experiments
