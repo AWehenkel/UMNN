@@ -50,5 +50,5 @@ class MonotonicNN(nn.Module):
         x0 = torch.zeros(x.shape).to(self.device)
         out = self.net(h)
         offset = out[:, [0]]
-        scaling = out[:, [1]]
+        scaling = torch.exp(out[:, [1]])
         return scaling*ParallelNeuralIntegral.apply(x0, x, self.integrand, _flatten(self.integrand.parameters()), h, self.nb_steps) + offset
