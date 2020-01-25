@@ -5,8 +5,15 @@ from .ParallelNeuralIntegral import ParallelNeuralIntegral
 import numpy as np
 import math
 from .made import MADE, ConditionnalMADE
+class ELUPlus(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.elu = nn.ELU()
+    def forward(self, x):
+        return self.elu(x) + 1.
 
-dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": lambda x: nn.ELU(x) + 1.}
+
+dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": ELUPlus()}
 
 def _flatten(sequence):
     flat = [p.contiguous().view(-1) for p in sequence]
@@ -197,7 +204,7 @@ class IntegrandNetwork(nn.Module):
         nb_batch, size_x = x.shape
         x_he = x.view(nb_batch, -1, self.nnets).transpose(1, 2).contiguous().view(nb_batch*self.nnets, -1)
         y = self.net(x_he).view(nb_batch, -1)
-        return y + 1.
+        return y
 
     def independant_forward(self, x):
         return self.net(x) + 1.
