@@ -57,7 +57,7 @@ class UMNNMAFFlow(nn.Module):
 
         self.nets = ListModule(self, "Flow")
         for i in range(nb_flow):
-            auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s, act_func='ELU',
+            auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s, act_func=act_func,
                                                      device=device, cond_in=cond_in).to(device)
 
             model = UMNNMAF(auto_net, nb_in, nb_steps, device, solver=solver).to(device)
