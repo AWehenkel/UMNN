@@ -6,7 +6,7 @@ import numpy as np
 import math
 from .made import MADE, ConditionnalMADE
 
-dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": nn.ELU()}
+dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": lambda x: nn.ELU(x) + 1.}
 
 def _flatten(sequence):
     flat = [p.contiguous().view(-1) for p in sequence]
@@ -219,7 +219,7 @@ class IntegrandNetwork(nn.Module):
 
 class EmbeddingNetwork(nn.Module):
     def __init__(self, in_d, hiddens_embedding=[50, 50, 50, 50], hiddens_integrand=[50, 50, 50, 50], out_made=1,
-                 cond_in=0, device="cpu"):
+                 cond_in=0, act_func='ELU', device="cpu"):
         super().__init__()
         self.m_embeding = None
         self.device = device
@@ -229,7 +229,7 @@ class EmbeddingNetwork(nn.Module):
                                          natural_ordering=True).to(device)
         else:
             self.made = MADE(in_d, hiddens_embedding, in_d * (out_made), num_masks=1, natural_ordering=True).to(device)
-        self.parallel_nets = IntegrandNetwork(in_d, 1 + out_made, hiddens_integrand, 1, device=device)
+        self.parallel_nets = IntegrandNetwork(in_d, 1 + out_made, hiddens_integrand, 1, act_func=act_func, device=device)
 
     def make_embeding(self, x_made, context=None):
         self.m_embeding = self.made.forward(x_made, context)

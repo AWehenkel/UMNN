@@ -38,7 +38,7 @@ class ListModule(object):
 class UMNNMAFFlow(nn.Module):
 
     def __init__(self, nb_flow=1, nb_in=1, hidden_derivative=[50, 50, 50, 50], hidden_embedding=[50, 50, 50, 50],
-                 embedding_s=20, nb_steps=50, solver="CC", cond_in=0, device="cpu"):
+                 embedding_s=20, nb_steps=50, act_func='ELU', solver="CC", cond_in=0, device="cpu"):
         """
         UMNNMAFFlow class is a normalizing flow made of UMNNMAF blocks.
         :int nb_flow: The number of components in the flow
@@ -57,7 +57,7 @@ class UMNNMAFFlow(nn.Module):
 
         self.nets = ListModule(self, "Flow")
         for i in range(nb_flow):
-            auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s,
+            auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s, act_func='ELU',
                                                      device=device, cond_in=cond_in).to(device)
 
             model = UMNNMAF(auto_net, nb_in, nb_steps, device, solver=solver).to(device)

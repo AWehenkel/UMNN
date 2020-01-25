@@ -1,1 +1,1 @@
-from models.UMNN import UMNNMAFFlow
+from models.UMNN import UMNNMAFFlow, MADE
