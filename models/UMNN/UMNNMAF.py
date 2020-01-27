@@ -207,7 +207,7 @@ class IntegrandNetwork(nn.Module):
         return y
 
     def independant_forward(self, x):
-        return self.net(x) + 1.
+        return self.net(x)
 
     def compute_lipschitz(self, nb_iter=10):
         with torch.no_grad():
