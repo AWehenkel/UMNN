@@ -118,7 +118,7 @@ class MADE(nn.Module):
             return z
         return self.net(x)
 
-    def computeLL(self, x):
+    def compute_ll(self, x):
         # Jac and x of MADE
         transf = self.net(x)
         mu, sigma = transf[:, :self.nin], transf[:, self.nin:]
