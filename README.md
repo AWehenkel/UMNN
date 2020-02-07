@@ -69,3 +69,18 @@ are located in the folder models/UMNN.
 the net but to the price of a higher memory cost. 
 - `UMNNMAF.py` contains the implementation of the different networks required by UMNN.
 - `UMNNMAFFlow.py` contains the implementation of flows made of UMNNs.
+- Check [here](https://github.com/AWehenkel/generalized-UMNN/) if you are interested by modeling functions that are monotonic with respect to more than one input variable. (Do not hesitate to contact me for more details)
+
+## Cite
+
+If you make use of this code in your own work, please cite our paper:
+
+```
+@inproceedings{wehenkel2019unconstrained,
+  title={Unconstrained monotonic neural networks},
+  author={Wehenkel, Antoine and Louppe, Gilles},
+  booktitle={Advances in Neural Information Processing Systems},
+  pages={1543--1553},
+  year={2019}
+}
+```
