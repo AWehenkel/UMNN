@@ -46,11 +46,18 @@ class UMNNMAF(nn.Module):
         # Scaling could be changed to be an autoregressive network output
         self.scaling = torch.zeros(input_size).to(self.device)
 
+    def to(self, device):
+        self.device = device
+        self.net.to(device)
+        self.pi = torch.tensor(math.pi).to(self.device)
+        self.scaling.to(self.device)
+        return self
+
+
     def forward(self, x, method=None, x0=None, context=None):
         x0 = x0 if x0 is not None else torch.zeros(x.shape).to(self.device)
         xT = x
         h = self.net.make_embeding(xT, context)
-
         z0 = h.view(h.shape[0], -1, x.shape[1])[:, 0, :]
 
         # s is a scaling factor.
@@ -185,6 +192,7 @@ class IntegrandNetwork(nn.Module):
         self.nnets = nnets
         self.nout = nout
         self.hidden_sizes = hidden_sizes
+        self.device = device
 
         # define a simple MLP neural net
         self.net = []
@@ -198,6 +206,12 @@ class IntegrandNetwork(nn.Module):
         self.net.append(dict_act_func[act_func])
         self.net = nn.Sequential(*self.net)
         self.masks = torch.eye(nnets).to(device)
+
+    def to(self, device):
+        self.device = device
+        self.net.to(device)
+        self.masks.to(device)
+        return self
 
     def forward(self, x, h):
         x = torch.cat((x, h), 1)
@@ -237,6 +251,12 @@ class EmbeddingNetwork(nn.Module):
         else:
             self.made = MADE(in_d, hiddens_embedding, in_d * (out_made), num_masks=1, natural_ordering=True).to(device)
         self.parallel_nets = IntegrandNetwork(in_d, 1 + out_made, hiddens_integrand, 1, act_func=act_func, device=device)
+
+    def to(self, device):
+        self.device = device
+        self.made.to(device)
+        self.parallel_nets.to(device)
+        return self
 
     def make_embeding(self, x_made, context=None):
         self.m_embeding = self.made.forward(x_made, context)
