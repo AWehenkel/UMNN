@@ -52,9 +52,8 @@ class UMNNMAFFlow(nn.Module):
         :string device: The device (cpu or gpu)
         """
         super().__init__()
-
-        self.pi = torch.tensor(math.pi).to(self.device)
         self.device = device
+        self.pi = torch.tensor(math.pi).to(self.device)
         self.nets = ListModule(self, "Flow")
         for i in range(nb_flow):
             auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s, act_func=act_func,
