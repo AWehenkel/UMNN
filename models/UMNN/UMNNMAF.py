@@ -50,7 +50,7 @@ class UMNNMAF(nn.Module):
         self.device = device
         self.net.to(device)
         self.pi = torch.tensor(math.pi).to(self.device)
-        self.scaling.to(self.device)
+        self.scaling = self.scaling.to(self.device)
         return self
 
 
