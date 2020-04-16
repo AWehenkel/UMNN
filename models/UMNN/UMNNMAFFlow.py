@@ -53,7 +53,7 @@ class UMNNMAFFlow(nn.Module):
         """
         super().__init__()
         self.device = device
-        self.pi = torch.tensor(math.pi).to(self.device)
+        self.pi = nn.Parameter(torch.tensor(math.pi, device=self.device), requires_grad=False)
         self.nets = ListModule(self, "Flow")
         for i in range(nb_flow):
             auto_net = EmbeddingNetwork(nb_in, hidden_embedding, hidden_derivative, embedding_s, act_func=act_func,
@@ -66,7 +66,7 @@ class UMNNMAFFlow(nn.Module):
         for net in self.nets:
             net.to(device)
         self.device = device
-        self.pi = torch.tensor(math.pi).to(device)
+        self.pi = self.pi.to(device)
         return self
 
     def forward(self, x, context=None):
