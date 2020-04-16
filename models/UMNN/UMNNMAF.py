@@ -55,7 +55,7 @@ class UMNNMAF(nn.Module):
 
 
     def forward(self, x, method=None, x0=None, context=None):
-        x0 = x0 if x0 is not None else torch.zeros(x.shape).to(self.device)
+        x0 = x0.to(x.device) if x0 is not None else torch.zeros(x.shape).to(x.device)
         xT = x
         h = self.net.make_embeding(xT, context)
         z0 = h.view(h.shape[0], -1, x.shape[1])[:, 0, :]
