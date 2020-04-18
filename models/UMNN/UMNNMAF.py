@@ -41,18 +41,15 @@ class UMNNMAF(nn.Module):
         self.cc_weights = None
         self.steps = None
         self.solver = solver
-        self.pi = nn.Parameter(torch.tensor(math.pi).to(self.device), requires_grad=False)
+        self.register_buffer("pi", torch.tensor(math.pi))
 
         # Scaling could be changed to be an autoregressive network output
         self.scaling = nn.Parameter(torch.zeros(input_size, device=self.device), requires_grad=False)
 
     def to(self, device):
         self.device = device
-        self.net.to(device)
-        self.pi = nn.Parameter(torch.tensor(math.pi).to(self.device), requires_grad=False)
-        self.scaling = self.scaling.to(self.device)
+        super().to(device)
         return self
-
 
     def forward(self, x, method=None, x0=None, context=None):
         x0 = x0.to(x.device) if x0 is not None else torch.zeros(x.shape).to(x.device)
