@@ -26,6 +26,7 @@ class IntegrandNN(nn.Module):
     def forward(self, x, h):
         return self.net(torch.cat((x, h), 1)) + 1.
 
+
 class MonotonicNN(nn.Module):
     def __init__(self, in_d, hidden_layers, nb_steps=50, dev="cpu"):
         super(MonotonicNN, self).__init__()
@@ -44,7 +45,7 @@ class MonotonicNN(nn.Module):
         self.nb_steps = nb_steps
 
     '''
-    The forward procedure takes as input x which is the variable for which the integration must be made, h is just other conditionning variables.
+    The forward procedure takes as input x which is the variable for which the integration must be made, h are just other conditionning variables.
     '''
     def forward(self, x, h):
         x0 = torch.zeros(x.shape).to(self.device)
@@ -52,3 +53,13 @@ class MonotonicNN(nn.Module):
         offset = out[:, [0]]
         scaling = torch.exp(out[:, [1]])
         return scaling*ParallelNeuralIntegral.apply(x0, x, self.integrand, _flatten(self.integrand.parameters()), h, self.nb_steps) + offset
+
+    '''
+    The inverse procedure takes as input y which is the variable for which the inverse must be computed, h are just other conditionning variables.
+    '''
+    def inverse(self, y, h):
+        out = self.net(h)
+        y0 = out[:, [0]]
+        scaling = torch.exp(out[:, [1]])
+        return ParallelNeuralIntegral.apply(y0, y, self.integrand, _flatten(self.integrand.parameters()), h,
+                                            self.nb_steps)/scaling

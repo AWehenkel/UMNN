@@ -3,7 +3,7 @@ import setuptools
 
 setup(
     name='UMNN',
-    version='2.0',
+    version='1.5',
     author="Antoine Wehenkel",
     author_email="antoine.wehenkel@gmail.com",
     description="Implementation of unconstrained monotonic neural networks",

@@ -71,7 +71,7 @@ the net but to the price of a higher memory cost.
 - `UMNNMAFFlow.py` contains the implementation of flows made of UMNNs.
 - Check [here](https://github.com/AWehenkel/generalized-UMNN/) if you are interested by modeling functions that are monotonic with respect to more than one input variable. (Do not hesitate to contact me for more details)
 
-## What's new in 2.0?
+## What's new in 1.5?
 The inversion is now performed exactly by solving another integral. Namely, it is derived 
 from the inverse function theorem. UMNNs now provide a way to model a monotonic function with a neural network while providing
 an access to the derivative of both the function and its inverse with respect to neural network's parameters.
