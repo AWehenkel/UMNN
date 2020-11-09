@@ -25,7 +25,7 @@ def compute_cc_weights(nb_steps):
     return cc_weights, steps
 
 
-def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=None):
+def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=None, inv_f=False):
     #Clenshaw-Curtis Quadrature Method
     cc_weights, steps = compute_cc_weights(nb_steps)
 
@@ -41,11 +41,14 @@ def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=
     for i in range(nb_steps + 1):
         x = (x0 + (xT - x0)*(steps[i] + 1)/2)
         if compute_grad:
-            dg_param, dg_h = computeIntegrand(x, h, integrand, x_tot*(xT - x0)/2)
+            dg_param, dg_h = computeIntegrand(x, h, integrand, x_tot*(xT - x0)/2, inv_f)
             g_param += cc_weights[i]*dg_param
             g_h += cc_weights[i]*dg_h
         else:
-            dz = integrand(x, h)
+            if inv_f:
+                dz = 1/integrand(x, h)
+            else:
+                dz = integrand(x, h)
             z = z + cc_weights[i]*dz
 
     if compute_grad:
@@ -54,9 +57,12 @@ def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=
     return z*(xT - x0)/2
 
 
-def computeIntegrand(x, h, integrand, x_tot):
+def computeIntegrand(x, h, integrand, x_tot, inv_f=False):
     with torch.enable_grad():
-        f = integrand.forward(x, h)
+        if inv_f:
+            f = 1/integrand.forward(x, h)
+        else:
+            f = integrand.forward(x, h)
         g_param = _flatten(torch.autograd.grad(f, integrand.parameters(), x_tot, create_graph=True, retain_graph=True))
         g_h = _flatten(torch.autograd.grad(f, h, x_tot))
 
@@ -66,13 +72,14 @@ def computeIntegrand(x, h, integrand, x_tot):
 class NeuralIntegral(torch.autograd.Function):
 
     @staticmethod
-    def forward(ctx, x0, x, integrand, flat_params, h, nb_steps=20):
+    def forward(ctx, x0, x, integrand, flat_params, h, nb_steps=20, inv_f=False):
         with torch.no_grad():
-            x_tot = integrate(x0, nb_steps, (x - x0)/nb_steps, integrand, h, False)
+            x_tot = integrate(x0, nb_steps, (x - x0)/nb_steps, integrand, h, False, inv_f=inv_f)
             # Save for backward
             ctx.integrand = integrand
             ctx.nb_steps = nb_steps
             ctx.save_for_backward(x0.clone(), x.clone(), h)
+            ctx.inv_f = inv_f
         return x_tot
 
     @staticmethod
@@ -80,7 +87,8 @@ class NeuralIntegral(torch.autograd.Function):
         x0, x, h = ctx.saved_tensors
         integrand = ctx.integrand
         nb_steps = ctx.nb_steps
-        integrand_grad, h_grad = integrate(x0, nb_steps, x/nb_steps, integrand, h, True, grad_output)
+        inv_f = ctx.inv_f
+        integrand_grad, h_grad = integrate(x0, nb_steps, x/nb_steps, integrand, h, True, grad_output, inv_f)
         x_grad = integrand(x, h)
         x0_grad = integrand(x0, h)
         # Leibniz formula

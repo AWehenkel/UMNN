@@ -75,7 +75,7 @@ class UMNNMAFFlow(nn.Module):
             x = net.forward(x, context=context)[:, inv_idx]
         return x[:, inv_idx]
 
-    def invert(self, z, iter=10, context=None):
+    def invert(self, z, context=None):
         """
         From image to domain.
         :param z: A tensor of noise.
@@ -86,7 +86,7 @@ class UMNNMAFFlow(nn.Module):
         inv_idx = torch.arange(z.size(1) - 1, -1, -1).long()
         z = z[:, inv_idx]
         for net_i in range(len(self.nets)-1, -1, -1):
-            z = self.nets[net_i].invert(z[:, inv_idx], iter, context=context)
+            z = self.nets[net_i].invert(z[:, inv_idx], context=context)
         return z
 
     def compute_log_jac(self, x, context=None):

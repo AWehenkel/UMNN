@@ -5,6 +5,8 @@ from .ParallelNeuralIntegral import ParallelNeuralIntegral
 import numpy as np
 import math
 from .made import MADE, ConditionnalMADE
+
+
 class ELUPlus(nn.Module):
     def __init__(self):
         super().__init__()
@@ -14,6 +16,7 @@ class ELUPlus(nn.Module):
 
 
 dict_act_func = {"Sigmoid": nn.Sigmoid(), "ELU": ELUPlus()}
+
 
 def _flatten(sequence):
     flat = [p.contiguous().view(-1) for p in sequence]
@@ -56,7 +59,6 @@ class UMNNMAF(nn.Module):
         xT = x
         h = self.net.make_embeding(xT, context)
         z0 = h.view(h.shape[0], -1, x.shape[1])[:, 0, :]
-
         # s is a scaling factor.
         s = torch.exp(self.scaling.unsqueeze(0).expand(x.shape[0], -1))
         if self.solver == "CC":
@@ -128,57 +130,26 @@ class UMNNMAF(nn.Module):
     def force_lipschitz(self, L=1.5):
         self.net.parallel_nets.force_lipschitz(L)
 
-    # Kind of dichotomy with a factor 100.
-    def invert(self, z, iter=10, context=None):
-        nb_step = 10
-        step = 1/(nb_step - 1)
+    def invert(self, z, context=None):
 
-        x_range = (torch.ones(z.shape[0], nb_step) * torch.arange(0, 1 + step/2, step)).permute(1, 0).to(self.device)
-        z = z.unsqueeze(0).expand(nb_step, -1, -1)
-        x = z.clone()
-        x_inv = torch.zeros(z.shape[1], z.shape[2]).to(self.device)
-        left, right = -50*torch.ones(z.shape[1], z.shape[2]).to(self.device), torch.ones(z.shape[1], z.shape[2])\
-            .to(self.device)*50
-        s = torch.exp(self.scaling.unsqueeze(0).unsqueeze(1).expand(x.shape[0], x.shape[1], -1))
+        x_inv = torch.zeros(z.shape[0], z.shape[1]).to(self.device)
+
+        # s is a scaling factor.
+        s = torch.exp(self.scaling.unsqueeze(0).expand(z.shape[0], -1))
+        nnets = self.net.parallel_nets.nnets
+        self.net.parallel_nets.nnets = 1
         with torch.no_grad():
             for j in range(self.input_size):
-                if j % 100 == 0:
-                    print(j)
-
-                # Compute embedding and keep only the one related to x_j
-                h = self.net.make_embeding(x_inv, context)
-                offset = h.view(x_inv.shape[0], -1, x_inv.shape[1])[:, 0, [j]]
-                h_idx = torch.arange(j, h.shape[1], z.shape[2]).to(self.device)
-                h = h[:, h_idx]
-
-                h, offset = h.squeeze(1).unsqueeze(0).expand(nb_step, -1, -1), offset.unsqueeze(0).expand(nb_step, -1, -1)
-                x0 = torch.zeros(offset.shape).view(-1, 1).to(self.device)
-
-                derivative = lambda x, h: self.net.parallel_nets.independant_forward(torch.cat((x, h), 1))
-
-                for i in range(iter):
-                    x[:, :, j] = x_range * (right[:, j] - left[:, j]) + left[:, j]
-                    # if i == 0:
-                    #     print(right[:, j], left[:, j])
-                    z_est = s[:, :, [j]]*(offset + ParallelNeuralIntegral.apply(x0, x[:, :, j].contiguous().view(-1, 1),
-                                                                                derivative, None,
-                                                                                h.contiguous().view(x0.shape[0], -1),
-                                                                                self.nb_steps).contiguous().view(nb_step, -1, 1))
-
-                    _, z_pos = torch.abs(z_est[:, :, 0] - z[:, :, j]).min(0)
-
-                    pos_midle = z_pos + torch.arange(0, z.shape[1]).to(self.device)*nb_step
-                    z_val = z_est[:, :, 0].t().contiguous().view(-1)[pos_midle]
-                    x_flat = x[:, :, j].t().contiguous().view(-1)
-
-                    mask = (z_val < z[0, :, j]).float()
-
-                    pos_left = pos_midle - 1
-                    pos_right = (pos_midle + 1) % x_flat.shape[0]
-
-                    left[:, j] = (mask * x_flat[pos_midle] + (1 - mask) * x_flat[pos_left])
-                    right[:, j] = (mask * x_flat[pos_right] + (1 - mask) * x_flat[pos_midle])
-                x_inv[:, j] = x_flat[pos_midle]
+                h = self.net.make_embeding(x_inv, context).view(z.shape[0], -1, z.shape[1])[:, :, j]
+                z0 = h[:, [0]]
+                zT = z[:, [j]]
+                if self.solver == "CC":
+                    x_inv[:, [j]] = NeuralIntegral.apply(z0, zT, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                             h, self.nb_steps, True)/s[:, [j]]
+                elif self.solver == "CCParallel":
+                    x_inv[:, [j]] = ParallelNeuralIntegral.apply(z0, zT, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                             h, self.nb_steps, True)/s[:, [j]]
+        self.net.parallel_nets.nnets = nnets
         return x_inv
 
 
