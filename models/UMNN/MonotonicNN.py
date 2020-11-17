@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from NeuralIntegral import NeuralIntegral
-from ParallelNeuralIntegral import ParallelNeuralIntegral
+from .NeuralIntegral import NeuralIntegral
+from .ParallelNeuralIntegral import ParallelNeuralIntegral
 
 
 def _flatten(sequence):
