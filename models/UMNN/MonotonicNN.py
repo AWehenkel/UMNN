@@ -54,11 +54,13 @@ class MonotonicNN(nn.Module):
     '''
     The forward procedure takes as input x which is the variable for which the integration must be made, h are just other conditionning variables.
     '''
-    def forward(self, x, h):
+    def forward(self, x, h, only_derivative=False):
         x0 = torch.zeros(x.shape).to(self.device)
         out = self.net(h)
         offset = out[:, :self.n_out]
         scaling = torch.exp(out[:, self.n_out:])
+        if only_derivative:
+            return scaling * self.integrand(x, h)
         return scaling*ParallelNeuralIntegral.apply(x0, x, self.integrand, _flatten(self.integrand.parameters()), h, self.nb_steps) + offset
 
     '''
@@ -76,15 +78,3 @@ class MonotonicNN(nn.Module):
         h = h.unsqueeze(1).expand(-1, self.n_out, -1).contiguous().view(y.shape[0], -1)
         y0 = torch.zeros(y.shape).to(self.device)
         return ParallelNeuralIntegral.apply(y0, y, self.integrand, _flatten(self.integrand.parameters()), h, self.nb_steps, True).view(-1)[idx].view(-1, self.n_out)
-
-
-net = MonotonicNN(3, [50, 50, 50], n_out=3)
-x = torch.arange(-2, 2, .1).view(-1, 1)
-h = torch.zeros(x.shape[0], 2) + 1.
-y = net(x, h)
-x_est = net.inverse(y[:, [2]], h)
-print(x_est[0:20, :], x[0:20, :])
-print(x.shape, y.shape)
-import matplotlib.pyplot as plt
-#plt.plot(x.numpy(), y.detach().numpy())
-#plt.show()

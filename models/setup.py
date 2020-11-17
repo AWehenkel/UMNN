@@ -3,7 +3,7 @@ import setuptools
 
 setup(
     name='UMNN',
-    version='1.62',
+    version='1.64',
     author="Antoine Wehenkel",
     author_email="antoine.wehenkel@gmail.com",
     description="Implementation of unconstrained monotonic neural networks and their application for autoregressive normalizing flows.",
