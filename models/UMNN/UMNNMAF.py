@@ -142,13 +142,13 @@ class UMNNMAF(nn.Module):
             for j in range(self.input_size):
                 h = self.net.make_embeding(x_inv, context).view(z.shape[0], -1, z.shape[1])[:, :, j]
                 z0 = h[:, [0]]
-                zT = z[:, [j]]
+                zT = z[:, [j]]/s[:, [j]]
                 if self.solver == "CC":
                     x_inv[:, [j]] = NeuralIntegral.apply(z0, zT, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                             h, self.nb_steps, True)/s[:, [j]]
+                                             h, self.nb_steps, True)
                 elif self.solver == "CCParallel":
                     x_inv[:, [j]] = ParallelNeuralIntegral.apply(z0, zT, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                             h, self.nb_steps, True)/s[:, [j]]
+                                             h, self.nb_steps, True)
         self.net.parallel_nets.nnets = nnets
         return x_inv
 

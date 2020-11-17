@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from .NeuralIntegral import NeuralIntegral
-from .ParallelNeuralIntegral import ParallelNeuralIntegral
+from NeuralIntegral import NeuralIntegral
+from ParallelNeuralIntegral import ParallelNeuralIntegral
 
 
 def _flatten(sequence):
@@ -34,7 +34,7 @@ class MonotonicNN(nn.Module):
     nb_steps : Number of integration steps
     n_out : the number of output (each output will be monotonic w.r.t one variable)
     '''
-    def __init__(self, in_d, hidden_layers, nb_steps=50, n_out=1, dev="cpu"):
+    def __init__(self, in_d, hidden_layers, nb_steps=200, n_out=1, dev="cpu"):
         super(MonotonicNN, self).__init__()
         self.integrand = IntegrandNN(in_d, hidden_layers, n_out)
         self.net = []
@@ -63,10 +63,28 @@ class MonotonicNN(nn.Module):
 
     '''
     The inverse procedure takes as input y which is the variable for which the inverse must be computed, h are just other conditionning variables.
+    One output per n_out.
+    y should be a scalar.
     '''
     def inverse(self, y, h):
+        idx = (torch.arange(0, self.n_out**2, self.n_out + 1).view(1, -1) + torch.arange(0, (self.n_out**2)*y.shape[0], self.n_out**2).view(-1, 1)).view(-1)
         out = self.net(h)
-        y0 = out[:, :self.n_out]
+        offset = out[:, :self.n_out]
         scaling = torch.exp(out[:, self.n_out:])
-        return ParallelNeuralIntegral.apply(y0, y, self.integrand, _flatten(self.integrand.parameters()), h,
-                                            self.nb_steps)/scaling
+        y = (y.expand(-1, self.n_out) - offset)/scaling
+        y = y.view(-1, 1)
+        h = h.unsqueeze(1).expand(-1, self.n_out, -1).contiguous().view(y.shape[0], -1)
+        y0 = torch.zeros(y.shape).to(self.device)
+        return ParallelNeuralIntegral.apply(y0, y, self.integrand, _flatten(self.integrand.parameters()), h, self.nb_steps, True).view(-1)[idx].view(-1, self.n_out)
+
+
+net = MonotonicNN(3, [50, 50, 50], n_out=3)
+x = torch.arange(-2, 2, .1).view(-1, 1)
+h = torch.zeros(x.shape[0], 2) + 1.
+y = net(x, h)
+x_est = net.inverse(y[:, [2]], h)
+print(x_est[0:20, :], x[0:20, :])
+print(x.shape, y.shape)
+import matplotlib.pyplot as plt
+#plt.plot(x.numpy(), y.detach().numpy())
+#plt.show()
