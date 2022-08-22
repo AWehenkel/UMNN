@@ -4,6 +4,10 @@ Official implementation of Unconstrained Monotonic Neural Networks (UMNN) and th
 > Antoine Wehenkel and Gilles Louppe. "Unconstrained Monotonic Neural Networks." (2019).
 > [[arxiv]](https://arxiv.org/abs/1908.05164)
 
+# Other implementations:
+- Check the [LAMPE](https://github.com/francois-rozet/lampe) library for a clean and complete implementation of UMNNs based normalizing flows.
+- Check [here](https://github.com/AWehenkel/generalized-UMNN/) if you are interested by modeling functions that are monotonic with respect to more than one input variable. (Do not hesitate to contact me for more details)
+
 # Dependencies
 The code has been tested with Pytorch 1.1 and Python3.6.
 Some code to draw figures and load dataset are taken from 
@@ -69,7 +73,6 @@ are located in the folder models/UMNN.
 the net but to the price of a higher memory cost. 
 - `UMNNMAF.py` contains the implementation of the different networks required by UMNN.
 - `UMNNMAFFlow.py` contains the implementation of flows made of UMNNs.
-- Check [here](https://github.com/AWehenkel/generalized-UMNN/) if you are interested by modeling functions that are monotonic with respect to more than one input variable. (Do not hesitate to contact me for more details)
 
 ## Cite
 
