@@ -5,7 +5,7 @@ Official implementation of Unconstrained Monotonic Neural Networks (UMNN) and th
 > [[arxiv]](https://arxiv.org/abs/1908.05164)
 
 # Other implementations:
-- Check the [LAMPE](https://github.com/francois-rozet/lampe) library for a clean and complete implementation of UMNNs based normalizing flows.
+- Check the [Zuko](https://github.com/francois-rozet/zuko) library for a clean and complete implementation of UMNNs based normalizing flows.
 - Check [here](https://github.com/AWehenkel/generalized-UMNN/) if you are interested by modeling functions that are monotonic with respect to more than one input variable. (Do not hesitate to contact me for more details)
 
 # Dependencies
