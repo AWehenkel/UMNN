@@ -29,7 +29,10 @@ def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=
     #Clenshaw-Curtis Quadrature Method
     cc_weights, steps = compute_cc_weights(nb_steps)
 
-    device = x0.get_device() if x0.is_cuda else "cpu"
+    device = x0.get_device() if x0.is_cuda or x0.is_mps else "cpu"
+    if x0.is_mps:
+        device = 'mps'
+
     cc_weights, steps = cc_weights.to(device), steps.to(device)
 
     if compute_grad:
