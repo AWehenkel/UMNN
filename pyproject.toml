@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "UMNN"
+version = "1.70"
+description = "Unconstrained Monotonic Neural Networks"
+license = { text = "BSD-3-Clause" }  # SPDX short identifier
+requires-python = ">=3.6"
+authors = [
+    { name = "awehenkel", email = "antoine.wehenkel@gmail.com" },
+]
+dependencies = [
+    "torch>=1.1",
+    "numpy",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/AWehenkel/UMNN"
+
+[tool.hatch.build.targets.sdist]
+# hatchling always includes:
+# pyproject.toml, .gitignore, any README, any LICENSE, AUTHORS
+include = [
+    "/models/UMNN",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["models/UMNN"]
