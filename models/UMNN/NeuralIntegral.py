@@ -83,7 +83,7 @@ class NeuralIntegral(torch.autograd.Function):
         x0, x, h = ctx.saved_tensors
         integrand = ctx.integrand
         nb_steps = ctx.nb_steps
-        integrand_grad, h_grad = integrate(x0, nb_steps, x/nb_steps, integrand, h, True, grad_output)
+        integrand_grad, h_grad = integrate(x0, nb_steps, (x - x0)/nb_steps, integrand, h, True, grad_output)
         x_grad = integrand(x, h)
         x0_grad = integrand(x0, h)
         # Leibniz formula

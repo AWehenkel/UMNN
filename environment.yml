@@ -1,0 +1,19 @@
+name: umnn-dev
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python>=3.8
+  - pytorch>=2.0
+  - numpy
+  - matplotlib
+  - scipy
+  - jupyter
+  - pytest
+  - black
+  - flake8
+  - ipython
+  - pip
+  - pip:
+    - tensorboard

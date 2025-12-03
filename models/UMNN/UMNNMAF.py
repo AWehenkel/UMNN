@@ -211,9 +211,25 @@ class IntegrandNetwork(nn.Module):
         return self
 
     def forward(self, x, h):
-        x = torch.cat((x, h), 1)
-        nb_batch, size_x = x.shape
-        x_he = x.view(nb_batch, -1, self.nnets).transpose(1, 2).contiguous().view(nb_batch*self.nnets, -1)
+        # x: [batch, input_dim], h: [batch, nnets*out_made] -> x_cat: [batch, input_dim + nnets*out_made]
+        x_cat = torch.cat((x, h), 1)
+        nb_batch = x_cat.shape[0]
+        size_x = x_cat.shape[1]
+
+        # Reshape logic: view as [batch, features_per_net, nnets] then transpose
+        # For this to work, size_x must be divisible by nnets
+        # In typical usage: x is [batch, input_dim], h is [batch, input_dim*out_made]
+        # So size_x = input_dim + input_dim*out_made = input_dim*(1+out_made)
+        # And nnets = input_dim, so features_per_net = (1+out_made)
+
+        # Use integer floor division for JIT compatibility
+        features_per_net = size_x // self.nnets
+
+        # Reshape to [batch, features_per_net, nnets], then transpose
+        x_reshaped = x_cat.view(nb_batch, features_per_net, self.nnets)
+        x_transposed = x_reshaped.transpose(1, 2)  # [batch, nnets, features_per_net]
+        x_he = x_transposed.contiguous().view(nb_batch * self.nnets, features_per_net)
+
         y = self.net(x_he).view(nb_batch, -1)
         return y
 

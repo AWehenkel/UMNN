@@ -102,8 +102,11 @@ class ParallelNeuralIntegral(torch.autograd.Function):
         integrand = ctx.integrand
         nb_steps = ctx.nb_steps
         inv_f = ctx.inv_f
-        integrand_grad, h_grad = integrate(x0, nb_steps, x/nb_steps, integrand, h, True, grad_output, inv_f)
+        integrand_grad, h_grad = integrate(x0, nb_steps, (x - x0)/nb_steps, integrand, h, True, grad_output, inv_f)
         x_grad = integrand(x, h)
         x0_grad = integrand(x0, h)
         # Leibniz formula
-        return -x0_grad*grad_output, x_grad*grad_output, None, integrand_grad, h_grad.view(h.shape), None
+        if inv_f:
+            return -x0_grad*grad_output, x_grad*grad_output, None, integrand_grad, h_grad.view(h.shape), None, None
+        else:
+            return -x0_grad*grad_output, x_grad*grad_output, None, integrand_grad, h_grad.view(h.shape), None, None
