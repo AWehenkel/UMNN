@@ -32,13 +32,13 @@ fi
 
 # Run tests
 echo -e "${YELLOW}Running tests...${NC}"
-python test_jit.py
+python tests/test_jit.py
 if [ $? -ne 0 ]; then
     echo -e "${RED}JIT tests failed!${NC}"
     exit 1
 fi
 
-python test_numerical_validation.py
+python tests/test_numerical_validation.py
 if [ $? -ne 0 ]; then
     echo -e "${RED}Numerical validation tests failed!${NC}"
     exit 1
