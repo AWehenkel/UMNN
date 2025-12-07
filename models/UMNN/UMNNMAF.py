@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 from .NeuralIntegral import NeuralIntegral
 from .ParallelNeuralIntegral import ParallelNeuralIntegral
+# Import the integrate functions for JIT compatibility
+from .NeuralIntegral import integrate as sequential_integrate
+from .ParallelNeuralIntegral import integrate as parallel_integrate
 import numpy as np
 import math
 from .made import MADE, ConditionnalMADE
@@ -64,9 +67,6 @@ class UMNNMAF(nn.Module):
         # During tracing, torch.jit.is_tracing() returns True
         if torch.jit.is_tracing() or torch.jit.is_scripting():
             # Use direct integration (no custom backward)
-            from .ParallelNeuralIntegral import integrate as parallel_integrate
-            from .NeuralIntegral import integrate as sequential_integrate
-
             if self.solver == "CC":
                 z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
                                        self.net.parallel_nets, h, False) + z0
