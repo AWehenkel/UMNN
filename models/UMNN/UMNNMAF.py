@@ -41,13 +41,32 @@ class UMNNMAF(nn.Module):
         self.device = device
         self.input_size = input_size
         self.nb_steps = nb_steps
-        self.cc_weights = None
-        self.steps = None
         self.solver = solver
         self.register_buffer("pi", torch.tensor(math.pi))
 
+        # Pre-compute and register Clenshaw-Curtis weights as buffers (for JIT compatibility)
+        cc_weights, steps = self._compute_cc_weights(nb_steps)
+        self.register_buffer("cc_weights", cc_weights)
+        self.register_buffer("cc_steps", steps)
+
         # Scaling could be changed to be an autoregressive network output
         self.scaling = nn.Parameter(torch.zeros(input_size, device=self.device), requires_grad=False)
+
+    def _compute_cc_weights(self, nb_steps):
+        """Compute Clenshaw-Curtis quadrature weights (called once during init)."""
+        lam = np.arange(0, nb_steps + 1, 1).reshape(-1, 1)
+        lam = np.cos((lam @ lam.T) * math.pi / nb_steps)
+        lam[:, 0] = .5
+        lam[:, -1] = .5 * lam[:, -1]
+        lam = lam * 2 / nb_steps
+        W = np.arange(0, nb_steps + 1, 1).reshape(-1, 1)
+        W[np.arange(1, nb_steps + 1, 2)] = 0
+        W = 2 / (1 - W ** 2)
+        W[0] = 1
+        W[np.arange(1, nb_steps + 1, 2)] = 0
+        cc_weights = torch.tensor(lam.T @ W, dtype=torch.float32)
+        steps = torch.tensor(np.cos(np.arange(0, nb_steps + 1, 1).reshape(-1, 1) * math.pi / nb_steps), dtype=torch.float32)
+        return cc_weights, steps
 
     def to(self, device):
         self.device = device
@@ -110,20 +129,6 @@ class UMNNMAF(nn.Module):
                 raise
 
         return s*z
-
-    def compute_cc_weights(self, nb_steps):
-        lam = np.arange(0, nb_steps + 1, 1).reshape(-1, 1)
-        lam = np.cos((lam @ lam.T)*math.pi/nb_steps)
-        lam[:, 0] = .5
-        lam[:, -1] = .5*lam[:, -1]
-        lam = lam*2/nb_steps
-        W = np.arange(0, nb_steps + 1, 1).reshape(-1, 1)
-        W[np.arange(1, nb_steps + 1, 2)] = 0
-        W = 2/(1 - W**2)
-        W[0] = 1
-        W[np.arange(1, nb_steps + 1, 2)] = 0
-        self.cc_weights = torch.tensor(lam.T @ W).float().to(self.device)
-        self.steps = torch.tensor(np.cos(np.arange(0, nb_steps+1, 1).reshape(-1, 1) * math.pi/nb_steps)).float().to(self.device)
 
     def compute_log_jac(self, x, context=None):
         self.net.make_embeding(x, context)
