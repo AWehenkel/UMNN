@@ -8,7 +8,14 @@ def _flatten(sequence):
     return torch.cat(flat) if len(flat) > 0 else torch.tensor([])
 
 
+# Cache for cc_weights to avoid recomputation
+_cc_weights_cache = {}
+
 def compute_cc_weights(nb_steps):
+    # Check cache first
+    if nb_steps in _cc_weights_cache:
+        return _cc_weights_cache[nb_steps]
+
     lam = np.arange(0, nb_steps + 1, 1).reshape(-1, 1)
     lam = np.cos((lam @ lam.T) * math.pi / nb_steps)
     lam[:, 0] = .5
@@ -22,6 +29,8 @@ def compute_cc_weights(nb_steps):
     cc_weights = torch.tensor(lam.T @ W).float()
     steps = torch.tensor(np.cos(np.arange(0, nb_steps + 1, 1).reshape(-1, 1) * math.pi / nb_steps)).float()
 
+    # Cache the result
+    _cc_weights_cache[nb_steps] = (cc_weights, steps)
     return cc_weights, steps
 
 

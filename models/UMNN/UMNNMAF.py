@@ -59,14 +59,33 @@ class UMNNMAF(nn.Module):
 
         # s is a scaling factor.
         s = torch.exp(self.scaling.unsqueeze(0).expand(x.shape[0], -1))
-        if self.solver == "CC":
-            z = NeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                     h, self.nb_steps) + z0
-        elif self.solver == "CCParallel":
-            z = ParallelNeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                     h, self.nb_steps) + z0
+
+        # Detect if we're in JIT compilation/tracing mode
+        # During tracing, torch.jit.is_tracing() returns True
+        if torch.jit.is_tracing() or torch.jit.is_scripting():
+            # Use direct integration (no custom backward)
+            from .ParallelNeuralIntegral import integrate as parallel_integrate
+            from .NeuralIntegral import integrate as sequential_integrate
+
+            if self.solver == "CC":
+                z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                       self.net.parallel_nets, h, False) + z0
+            elif self.solver == "CCParallel":
+                z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                     self.net.parallel_nets, h, False, None, False) + z0
+            else:
+                return None
         else:
-            return None
+            # Use autograd.Function for training (has custom backward)
+            if self.solver == "CC":
+                z = NeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                     h, self.nb_steps) + z0
+            elif self.solver == "CCParallel":
+                z = ParallelNeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                     h, self.nb_steps) + z0
+            else:
+                return None
+
         return s*z
 
     def compute_cc_weights(self, nb_steps):
