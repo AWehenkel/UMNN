@@ -63,28 +63,51 @@ class UMNNMAF(nn.Module):
         # s is a scaling factor.
         s = torch.exp(self.scaling.unsqueeze(0).expand(x.shape[0], -1))
 
-        # Detect if we're in JIT compilation/tracing mode
-        # During tracing, torch.jit.is_tracing() returns True
-        if torch.jit.is_tracing() or torch.jit.is_scripting():
-            # Use direct integration (no custom backward)
-            if self.solver == "CC":
-                z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
-                                       self.net.parallel_nets, h, False) + z0
-            elif self.solver == "CCParallel":
-                z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
-                                     self.net.parallel_nets, h, False, None, False) + z0
+        # Detect if we're in JIT compilation/tracing mode or if gradients are not needed
+        # Use direct integration (JIT-compatible) when:
+        # 1. torch.jit.is_tracing() or torch.jit.is_scripting() returns True
+        # 2. We're in inference mode (!training) AND no gradients needed (!requires_grad)
+        is_jit_mode = torch.jit.is_tracing() or torch.jit.is_scripting()
+        is_inference_mode = (not self.training) and (not x.requires_grad)
+
+        # Try to use direct integration when possible for better JIT compatibility
+        # Fall back to autograd.Function only when gradients are needed
+        use_direct_integration = is_jit_mode or is_inference_mode
+
+        try:
+            if use_direct_integration:
+                # Use direct integration (no custom backward)
+                if self.solver == "CC":
+                    z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                           self.net.parallel_nets, h, False) + z0
+                elif self.solver == "CCParallel":
+                    z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                         self.net.parallel_nets, h, False, None, False) + z0
+                else:
+                    return None
             else:
-                return None
-        else:
-            # Use autograd.Function for training (has custom backward)
-            if self.solver == "CC":
-                z = NeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                     h, self.nb_steps) + z0
-            elif self.solver == "CCParallel":
-                z = ParallelNeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
-                                     h, self.nb_steps) + z0
+                # Use autograd.Function for training (has custom backward)
+                if self.solver == "CC":
+                    z = NeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                         h, self.nb_steps) + z0
+                elif self.solver == "CCParallel":
+                    z = ParallelNeuralIntegral.apply(x0, x, self.net.parallel_nets, _flatten(self.net.parallel_nets.parameters()),
+                                         h, self.nb_steps) + z0
+                else:
+                    return None
+        except RuntimeError as e:
+            # If we hit a JIT error with autograd.Function, fall back to direct integration
+            if "Map_base::at" in str(e) or "TorchScript" in str(e):
+                if self.solver == "CC":
+                    z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                           self.net.parallel_nets, h, False) + z0
+                elif self.solver == "CCParallel":
+                    z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
+                                         self.net.parallel_nets, h, False, None, False) + z0
+                else:
+                    return None
             else:
-                return None
+                raise
 
         return s*z
 
