@@ -96,12 +96,14 @@ class UMNNMAF(nn.Module):
         try:
             if use_direct_integration:
                 # Use direct integration (no custom backward)
+                # Pass pre-computed weights to avoid TracerWarnings
                 if self.solver == "CC":
                     z = sequential_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
                                            self.net.parallel_nets, h, False) + z0
                 elif self.solver == "CCParallel":
                     z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
-                                         self.net.parallel_nets, h, False, None, False) + z0
+                                         self.net.parallel_nets, h, False, None, False,
+                                         self.cc_weights, self.cc_steps) + z0
                 else:
                     return None
             else:
@@ -122,7 +124,8 @@ class UMNNMAF(nn.Module):
                                            self.net.parallel_nets, h, False) + z0
                 elif self.solver == "CCParallel":
                     z = parallel_integrate(x0, self.nb_steps, (x - x0)/self.nb_steps,
-                                         self.net.parallel_nets, h, False, None, False) + z0
+                                         self.net.parallel_nets, h, False, None, False,
+                                         self.cc_weights, self.cc_steps) + z0
                 else:
                     return None
             else:

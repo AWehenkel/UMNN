@@ -34,9 +34,11 @@ def compute_cc_weights(nb_steps):
     return cc_weights, steps
 
 
-def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=None, inv_f=False):
+def integrate(x0, nb_steps, step_sizes, integrand, h, compute_grad=False, x_tot=None, inv_f=False, cc_weights=None, steps=None):
     #Clenshaw-Curtis Quadrature Method
-    cc_weights, steps = compute_cc_weights(nb_steps)
+    # Use pre-computed weights if provided, otherwise compute them
+    if cc_weights is None or steps is None:
+        cc_weights, steps = compute_cc_weights(nb_steps)
 
     device = x0.get_device() if x0.is_cuda or x0.is_mps else "cpu"
     if x0.is_mps:
